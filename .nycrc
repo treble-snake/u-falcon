@@ -1,0 +1,10 @@
+{
+  "all": true,
+  "include": "src",
+  "exclude": [
+    "src/helpers/debug.js"
+  ],
+  "reporter": [
+    "text-summary"
+  ]
+}
