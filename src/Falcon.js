@@ -46,22 +46,20 @@ class Falcon {
 
     uResponse.writeStatus(String(code));
     headers.forEach(([name, value]) => uResponse.writeHeader(name, value));
-    if (body === null || body === undefined) {
-      return uResponse.end();
-    }
 
     const stringResult = typeof body === 'string';
     const result = stringResult ? body : JSON.stringify(body);
 
     // if it has it's already been written
-    if (!falconResponse.hasContentType()) {
-      const type = stringResult ?
-        (this._html ? 'text/html' : 'text/plain') :
-        'application/json';
-
-      uResponse.writeHeader('content-type', type);
+    if (falconResponse.hasContentType() || body === '') {
+      return uResponse.end(result);
     }
 
+    const type = stringResult ?
+      (this._html ? 'text/html' : 'text/plain') :
+      'application/json';
+
+    uResponse.writeHeader('content-type', type);
     uResponse.end(result);
   }
 
@@ -86,7 +84,7 @@ class Falcon {
         const request = new FalconRequest(uReq, uRes);
 
         try {
-          request.parseQuery().saveHeaders(); // todo: this methods shouldn't be public for user
+          request.saveHeaders().parseQuery(); // todo: this methods shouldn't be public for user
 
           // todo:  'head', 'delete', 'connect' ?
           if (!['get', 'trace'].includes(request.method)) {
@@ -122,7 +120,6 @@ class Falcon {
    * @private
    */
   _initNotFound() {
-    // todo: custom 404 handler
     this._app.any('*', (uRes, uReq) => {
       const response = new FalconResponse();
       const request = new FalconRequest(uReq, uRes);
@@ -192,15 +189,15 @@ class Falcon {
    * @return {Falcon}
    */
   errorHandlers(handlers) {
-    if(handlers.notFound) {
+    if (handlers.notFound) {
       this._errorHandlers.notFound = handlers.notFound;
     }
 
-    if(handlers.invalidBody) {
+    if (handlers.invalidBody) {
       this._errorHandlers.invalidBody = handlers.invalidBody;
     }
 
-    if(handlers.internal) {
+    if (handlers.internal) {
       this._errorHandlers.internal = handlers.internal;
     }
 

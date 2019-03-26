@@ -1,10 +1,8 @@
-const NO_DATA = Symbol('NoData');
-
 class FalconAnswer {
   constructor() {
     this._answered = false;
     this._code = 200;
-    this._data = NO_DATA;
+    this._data = '';
   }
 
   /**
@@ -23,12 +21,7 @@ class FalconAnswer {
       throw new Error('No answer');
     }
 
-    const result = {code: this._code};
-    if(this._data !== NO_DATA) {
-      result.data = this._data;
-    }
-
-    return Object.freeze(result);
+    return Object.freeze({code: this._code, data: this._data});
   }
 
   /**

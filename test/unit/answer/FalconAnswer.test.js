@@ -34,7 +34,7 @@ describe('FalconAnswer', function () {
     const answer = new FalconAnswer();
     answer.ok();
 
-    expect(answer.getAnswer()).to.be.deep.equal({code: 200});
+    expect(answer.getAnswer()).to.be.deep.equal({code: 200, data: ''});
   });
 
   it('should answer 200 with data', function () {
@@ -61,7 +61,7 @@ describe('FalconAnswer', function () {
     const answer = new FalconAnswer();
     answer.noContent({prop: 'some'});
 
-    expect(answer.getAnswer()).to.be.deep.equal({code: 204});
+    expect(answer.getAnswer()).to.be.deep.equal({code: 204, data: ''});
   });
 
   it('should answer 400 with data', function () {

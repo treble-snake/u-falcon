@@ -14,14 +14,16 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "busboy": "^0.3.0",
     "debug": "^4.1.1",
     "lodash": "^4.17.11",
     "pino": "^5.11.1",
     "pino-debug": "^1.2.0",
     "query-string": "^6.3.0",
-    "uWebSockets.js": "github:uNetworking/uWebSockets.js#v15.8.0"
+    "uWebSockets.js": "github:uNetworking/uWebSockets.js#v15.9.0"
   },
   "devDependencies": {
+    "@types/busboy": "^0.2.3",
     "@types/chai": "^4.1.7",
     "@types/chai-http": "^3.0.5",
     "@types/got": "^9.4.1",

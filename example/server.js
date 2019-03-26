@@ -25,6 +25,7 @@ const mainRouter = new Router()
   .post('/yo', (res, req) => {
     console.log('This is YO POST controller');
     res.addHeader('accept-version', '1.0.5');
+    console.log('Body:', req.body);
     res.answer.noContent();
   });
 
@@ -36,8 +37,8 @@ const otherRouter = new Router()
 
 falcon
   .use(async function rLog(res, req) {
-    console.warn('Setting cargo');
-    console.warn('On url: ', req.url);
+    console.log('Setting cargo');
+    console.log('On url: ', req.url);
     res.cargo.agent = req.getHeader('User-Agent');
     res.cargo.first = Math.random();
     res.cargo['prop' + Math.floor(Math.random() * 100)] = 'Yo';

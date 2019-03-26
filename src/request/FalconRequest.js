@@ -1,16 +1,7 @@
 const BodyParsingError = require('../errors/BodyParsingError');
-const parseJson = require('./body/parseJson');
-const parseFormUrlencoded = require('./body/parseFormUrlencoded');
 const parseQuery = require('./parseQuery');
-
-/**
- * @type {Map<string, any>}
- */
-const BODY_PARSERS = new Map([
-  ['application/json', parseJson],
-  ['application/x-www-form-urlencoded', parseFormUrlencoded]
-  // ['multipart/form-data', Function()] // todo: figure out
-]);
+const debug = require('../helpers/debug');
+const getBodyParser = require('./body/getBodyParser');
 
 class FalconRequest {
   /**
@@ -49,19 +40,13 @@ class FalconRequest {
 
   async parseBody() {
     const type = this._uReq.getHeader('content-type');
-    if (!type) {
-      return;
-    }
-
-    if (!BODY_PARSERS.has(type)) {
-      throw new BodyParsingError(`Content-type ${type} is not supported`);
-    }
-
-    const parser = BODY_PARSERS.get(type);
+    debug('Parsing content of type %s', type);
+    // todo: configure file uploading (parsers in general?)
+    const parser = getBodyParser(type);
 
     try {
       // todo: handle null (and primitive?) json body
-      this._body = await parser(this._uRes);
+      this._body = await parser(this._uRes, this._headers);
     } catch (e) {
       throw new BodyParsingError(e.message);
     }
