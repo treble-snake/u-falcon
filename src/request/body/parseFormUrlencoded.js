@@ -6,6 +6,7 @@ const parseQuery = require('../parseQuery');
  * @return {Promise<Object>}
  */
 const parseJson = (uRes) => {
+  // todo: use busboy
   return bodyToString(uRes)
     .then(parseQuery);
 };

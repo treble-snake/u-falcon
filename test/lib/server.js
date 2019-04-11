@@ -34,8 +34,19 @@ async function useFalcon(falcon, makeRequest, defaultPort = true) {
   }
 }
 
+const createChecks = (checks, done) => (res, req) => {
+  try {
+    checks(res, req);
+    done();
+  } catch (e) {
+    done(e);
+  }
+  res.answer.ok();
+};
+
 module.exports = {
   withFalcon,
   useFalcon,
-  url
+  url,
+  createChecks
 };

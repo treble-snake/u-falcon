@@ -1,12 +1,11 @@
 const BodyParsingError = require('../../errors/BodyParsingError');
-const bodyToString = require('./bodyToString');
 const parseJson = require('./parseJson');
 const parseFormUrlencoded = require('./parseFormUrlencoded');
 const parseMultipartData = require('./parseMultipartData');
 // const debug = require('../../helpers/debug');
 
 /**
- * @type {Map<string, any>}
+ * @type {Map<string, function>}
  */
 const BODY_PARSERS = new Map([
   ['application/json', parseJson],
@@ -15,7 +14,7 @@ const BODY_PARSERS = new Map([
 
 /**
  * @param {string} type
- * @return {function}
+ * @return {function(HttpResponse, Object): Promise<{body: Object, [files]: Object}>}
  * @throws BodyParsingError
  */
 const getBodyParser = (type) => {
@@ -25,12 +24,7 @@ const getBodyParser = (type) => {
   }
 
   if(type.startsWith('multipart/form-data')) {
-    // return bodyToString;
     return parseMultipartData;
-  }
-
-  if (!type) {
-    return bodyToString;
   }
 
   throw new BodyParsingError(`Content-type ${type} is not supported`);

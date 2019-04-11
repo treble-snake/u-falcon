@@ -3,6 +3,7 @@ const {describe, it} = require('mocha');
 const got = require('got');
 const Falcon = require('../../src/Falcon');
 const Router = require('../../src/routing/Router');
+const {withFalcon, createChecks} = require('../lib/server');
 const PORT = 4321;
 
 const BASE_URL = 'http://localhost:4321';
@@ -18,32 +19,10 @@ const jsonOptions = str => ({
   }
 });
 
-async function withFalcon(router, call) {
-  const falcon = new Falcon()
-    .use('/', router);
-  try {
-    await falcon.listen(PORT);
-    await call();
-  } finally {
-    falcon.close();
-  }
-}
-
-const handler = (checks, done) => (res, req) => {
-  try {
-    checks(res, req);
-    done();
-  } catch (e) {
-    done(e);
-  }
-  res.answer.ok();
-};
-
-
 describe('FalconRequest', function () {
 
   const makeGet = (checks, done, mountUrl = '/', reqUrl) => {
-    const router = new Router().get(mountUrl, handler((res, req) => {
+    const router = new Router().get(mountUrl, createChecks((res, req) => {
       checks(req);
     }, done));
 
@@ -51,8 +30,9 @@ describe('FalconRequest', function () {
       .catch(done);
   };
 
-  const makePost = (checks, done, options = {}) => {
-    const router = new Router().post('/', handler((res, req) => {
+  const makePost = (checks, done, options) => {
+    options = options || {headers: {'content-type': 'application/x-www-form-urlencoded'}};
+    const router = new Router().post('/', createChecks((res, req) => {
       checks(req);
     }, done));
 

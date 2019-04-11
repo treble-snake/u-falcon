@@ -7,15 +7,8 @@ const ChunkReader = require('./multipart/ChunkReader');
  * @return {Promise<Object>}
  */
 const parseMultipartData = (uRes, headers) => {
-  // todo: WiP
-  return new Promise((resolve, reject) => {
-    try {
-      const reader = new ChunkReader(uRes);
-      new MultipartHandler(headers, reader, resolve).parse();
-    }  catch (e) {
-      reject(e);
-    }
-  });
+  const reader = new ChunkReader(uRes);
+  return new MultipartHandler(headers, reader).parse();
 };
 
 module.exports = parseMultipartData;

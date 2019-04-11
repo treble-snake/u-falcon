@@ -191,19 +191,11 @@ describe('ErrorHandlers', function () {
 
       const router = new Router()
         .get('/', async (res, req) => {
-          await 1;
-          // using req after "return", hacky-hacky
-          req._uReq.getHeader('content-type');
-          res.answer.ok();
+          // could happen on some internal uws errors
+          throw 'text rejection';
         });
 
-      const falcon = new Falcon()
-        .use(async (res, req) => {
-          return Promise.resolve();
-        })
-        .use('/', router);
-
-      useFalcon(falcon, make500Request(checks, done))
+      withFalcon(router, make500Request(checks, done))
         .catch(e => done(e));
     });
 

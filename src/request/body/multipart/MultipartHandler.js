@@ -5,26 +5,26 @@ const {inspect} = require('util');
 const Busboy = require('busboy');
 
 // todo: WiP
+// todo: config - save only filenames from the list (and throw on text fields)
 class MultipartHandler {
 
   /**
    * @param {Object} headers
    * @param {Readable} reader
-   * @param {function} resolve
    */
-  constructor(headers, reader, resolve) {
-    this._onFinished = resolve;
-    this._parser = this._createBusboy(headers);
+  constructor(headers, reader) {
     this._reader = reader;
+    this._headers = headers;
   }
 
   /**
-   * @param {Object} headers
-   * @return {Object}
+   * @param {function} resolve
+   * @return {Writable}
    * @private
    */
-  _createBusboy(headers) {
-    const busboy = new Busboy({headers});
+  _createBusboy(resolve) {
+    // todo: handle arrays?
+    const busboy = new Busboy({headers: this._headers});
     const body = {};
 
     busboy.on('file', (fieldname, file, filename, encoding, mimetype) => {
@@ -46,14 +46,24 @@ class MultipartHandler {
 
     busboy.on('finish', () => {
       console.log('Done parsing form!');
-      this._onFinished(body);
+      resolve(body);
     });
 
     return busboy;
   }
 
+  /**
+   * @return {Promise<Object>} promise with parsed body
+   */
   parse() {
-    this._reader.pipe(this._parser);
+    return new Promise((resolve, reject) => {
+      try {
+        const busboy = this._createBusboy(resolve);
+        this._reader.pipe(busboy);
+      } catch (e) {
+        reject(e);
+      }
+    });
   }
 }
 
