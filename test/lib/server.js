@@ -14,7 +14,9 @@ function url(url = '/') {
  * @return {Promise<void>}
  */
 async function withFalcon(router, makeRequest) {
-  const falcon = new Falcon()
+  const falcon = new Falcon({
+    uploadDir: './test/fixtures/upload'
+  })
     .use('/', router);
 
   try {

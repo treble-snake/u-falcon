@@ -4,7 +4,7 @@ const MultipartHandler = require('../../../src/request/body/multipart/MultipartH
 
 describe('MultipartHandler', function () {
   it('should manage errors', function (done) {
-    const handler = new MultipartHandler({}, null);
+    const handler = new MultipartHandler({}, null, {});
     handler.parse()
       .then(() => done(new Error('Error expected')))
       .catch(() => done());

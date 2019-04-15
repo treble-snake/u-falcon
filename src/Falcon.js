@@ -1,4 +1,5 @@
 const uws = require('uWebSockets.js');
+const {pick, omit} = require('lodash');
 const FalconResponse = require('./response/FalconResponse');
 const FalconRequest = require('./request/FalconRequest');
 const debug = require('./helpers/debug');
@@ -7,20 +8,25 @@ const BodyParsingError = require('./errors/BodyParsingError');
 const errors = require('./errors/ErrorHandlers');
 const RoutesConfig = require('./routing/RoutesConfig');
 
+const UWS_OPTIONS = ['cert_file_name', 'dh_params_file_name', 'key_file_name',
+  'passphrase', 'ssl_prefer_low_memory_usage'];
+
+
 class Falcon {
   /**
-   * todo: options type
-   * @param options
+   * @param {FalconOptions} options
    */
   constructor(options = {}) {
     debug('Creating an app with options %j', options);
 
-    /** @private */ this._app = uws.App(options);
+    /** @private */ this._app = uws.App(pick(options, UWS_OPTIONS));
     /** @private */ this._socket = null;
 
     /** @private */ this._routesConfig = new RoutesConfig();
     /** @private */ this._html = false;
     /** @private */ this._port = null;
+
+    /** @private */ this._options = Object.freeze(omit(options, UWS_OPTIONS));
 
     /** @private */ this._errorHandlers = {
       notFound: errors.notFoundHandler,
@@ -81,7 +87,7 @@ class Falcon {
         });
 
         const response = new FalconResponse();
-        const request = new FalconRequest(uReq, uRes);
+        const request = new FalconRequest(uReq, uRes, this._options);
 
         try {
           request.saveHeaders().parseQuery(); // todo: this methods shouldn't be public for user
@@ -227,3 +233,8 @@ class Falcon {
 }
 
 module.exports = Falcon;
+
+/**
+ * @typedef {AppOptions} FalconOptions
+ * @property {string} [uploadDir]
+ */

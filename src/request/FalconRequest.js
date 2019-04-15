@@ -7,16 +7,18 @@ class FalconRequest {
   /**
    * @param {HttpRequest} uReq
    * @param {HttpResponse} uRes
+   * @param {Readonly<Object>} options
    */
-  constructor(uReq, uRes) {
+  constructor(uReq, uRes, options) {
     /** @private */ this._uReq = uReq;
     /** @private */ this._uRes = uRes;
+    /** @private */ this._options = options;
 
-    this._url = uReq.getUrl();
-    this._method = uReq.getMethod();
-    this._query = {};
-    this._body = {};
-    this._headers = {};
+    /** @private */ this._url = uReq.getUrl();
+    /** @private */ this._method = uReq.getMethod();
+    /** @private */ this._query = {};
+    /** @private */ this._body = {};
+    /** @private */ this._headers = {};
   }
 
   /**
@@ -46,7 +48,7 @@ class FalconRequest {
 
     try {
       // todo: handle null (and primitive?) json body
-      this._body = await parser(this._uRes, this._headers);
+      this._body = await parser(this._uRes, this._headers, this._options);
     } catch (e) {
       throw new BodyParsingError(e.message);
     }

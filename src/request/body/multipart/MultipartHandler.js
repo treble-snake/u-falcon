@@ -1,42 +1,49 @@
+const os = require('os');
 const fs = require('fs');
 const path = require('path');
-const debug = require('../../../helpers/debug');
 const {inspect} = require('util');
 const Busboy = require('busboy');
 
-// todo: WiP
 // todo: config - save only filenames from the list (and throw on text fields)
+// todo: config - custom name generator
 class MultipartHandler {
 
   /**
    * @param {Object} headers
    * @param {Readable} reader
+   * @param options
    */
-  constructor(headers, reader) {
+  constructor(headers, reader, options) {
     this._reader = reader;
     this._headers = headers;
+    this._uploadDir = options.uploadDir || os.tmpdir();
+
+    // todo: tests indicate that small files are not closed in time
+    this._filePromises = [];
   }
 
   /**
    * @param {function} resolve
+   * @param {function} reject
    * @return {Writable}
    * @private
    */
-  _createBusboy(resolve) {
+  _createBusboy(resolve, reject) {
     // todo: handle arrays?
     const busboy = new Busboy({headers: this._headers});
     const body = {};
 
     busboy.on('file', (fieldname, file, filename, encoding, mimetype) => {
-      body[fieldname] = 'File:' + filename;
+      // todo: better default name generator
+      const tmpPath = path.join(this._uploadDir,
+        [fieldname, Date.now(), Math.ceil(Math.random() * 1000), filename].join('-'));
+      body[fieldname] = {filename, mimetype, path: tmpPath};
+      const writeStream = fs.createWriteStream(tmpPath);
+      file.pipe(writeStream);
 
-      console.log('File [' + fieldname + ']: filename: ' + filename + ', encoding: ' + encoding + ', mimetype: ' + mimetype);
-      file.on('data', data => {
-        console.log('File [' + fieldname + '] got ' + data.length + ' bytes');
-      });
-      file.on('end', () => {
-        console.log('File [' + fieldname + '] Finished');
-      });
+      this._filePromises.push(new Promise(resolve => {
+        writeStream.on('close', resolve);
+      }));
     });
 
     busboy.on('field', (fieldname, val, fieldnameTruncated, valTruncated, encoding, mimetype) => {
@@ -46,7 +53,13 @@ class MultipartHandler {
 
     busboy.on('finish', () => {
       console.log('Done parsing form!');
-      resolve(body);
+      if (this._filePromises.length === 0) {
+        return resolve(body);
+      }
+
+      Promise.all(this._filePromises)
+        .then(() => resolve(body))
+        .catch(reject);
     });
 
     return busboy;
@@ -58,7 +71,7 @@ class MultipartHandler {
   parse() {
     return new Promise((resolve, reject) => {
       try {
-        const busboy = this._createBusboy(resolve);
+        const busboy = this._createBusboy(resolve, reject);
         this._reader.pipe(busboy);
       } catch (e) {
         reject(e);
